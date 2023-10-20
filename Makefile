@@ -8,6 +8,7 @@ clean:
 
 dev:
 	. ./venv/bin/activate
+	#source venv/bin/activate
 
 install:
 	python3 -m pip install -e .
