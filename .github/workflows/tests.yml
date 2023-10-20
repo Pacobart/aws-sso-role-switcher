@@ -7,4 +7,5 @@ jobs:
       image: public.ecr.aws/docker/library/python:3.9-slim
     steps:
       - run: echo "testing code"
+      - run: ls -la
       - run: python tests/test.py
