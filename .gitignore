@@ -1,0 +1,5 @@
+.idea*
+*egg*
+.tox*
+*__pycache__*
+venv
