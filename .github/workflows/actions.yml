@@ -1,14 +1,17 @@
 name: aws-sso-role-switcher
-run-name: actions
+run-name: CI
+on: [push]
 jobs:
   build:
     runs-on: ubuntu-latest
-    on: [push]
+    container:
+      image: python:3.9
     steps:
       - run: echo "building package"
   test:
     runs-on: ubuntu-latest
-    on: [push]
+    container:
+      image: python3.9
     steps:
       - run: echo "testing code"
       - run: make test
