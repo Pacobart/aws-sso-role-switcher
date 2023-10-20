@@ -1,11 +1,13 @@
-name: tests
+name: Tests
 on: [push]
 jobs:
-  test:
+  unit tests:
     runs-on: ubuntu-latest
     container:
       image: public.ecr.aws/docker/library/python:3.9-slim
     steps:
+      - name: Checkout
+        uses: actions/checkout@v4
       - run: echo "testing code"
       - run: ls -la
       - run: python tests/test.py
