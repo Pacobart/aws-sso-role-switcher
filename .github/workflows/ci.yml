@@ -1,5 +1,4 @@
-name: aws-sso-role-switcher
-run-name: CI
+name: ci
 on: [push]
 jobs:
   build:
