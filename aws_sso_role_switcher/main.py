@@ -41,7 +41,6 @@ class ASRS:
         default_path = os.path.join(Path.home(), '.aws/config')
         extended_path = os.environ.get('AWS_PROFILE_SWITCHER_PATH')
         self.version = f"{__version__}"
-        self.os = os.name
         if extended_path:
             path = extended_path
         else:
@@ -62,7 +61,7 @@ class ASRS:
                     self.set_aws_region(args.region)
         else:
             self.set_aws_region(args.region)
-        self.aws_set_credentials(self, profile)
+        self.aws_set_credentials(profile)
 
 
     def set_aws_vars(self, arg):
@@ -79,7 +78,7 @@ class ASRS:
                             complete_while_typing=True,
                             validator=validator)
             profile = profile.replace('profile ', '')
-        if self.os == 'nt':
+        if os.name == 'nt':
             print(f"set AWS_PROFILE={profile}")
         else:
             print(f"export AWS_PROFILE={profile}")
@@ -95,7 +94,10 @@ class ASRS:
     def set_aws_region(arg):
         region = prompt('AWS_DEFAULT_REGION Not Set. Choose Region: ', default=arg,
                         completer=FuzzyWordCompleter(REGIONS))
-        print(f"export AWS_DEFAULT_REGION={region}")
+        if os.name == 'nt':
+            print(f"set AWS_DEFAULT_REGION={region}")
+        else:
+            print(f"export AWS_DEFAULT_REGION={region}")
 
     @staticmethod
     def region_validator(text):
@@ -116,8 +118,8 @@ class ASRS:
         return args
     
     @staticmethod
-    def aws_set_credentials(self, arg):
-        if self.os == 'nt':
+    def aws_set_credentials(arg):
+        if os.name == 'nt':
             os.system(f'aws configure export-credentials --profile {arg} --format windows-cmd')
         else:
             os.system(f'aws configure export-credentials --profile {arg} --format env')
