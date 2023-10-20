@@ -1,0 +1,14 @@
+name: aws-sso-role-switcher
+run-name: actions
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    on: [push]
+    steps:
+      - run: echo "building package"
+  test:
+    runs-on: ubuntu-latest
+    on: [push]
+    steps:
+      - run: echo "testing code"
+      - run: make test
