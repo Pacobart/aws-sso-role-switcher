@@ -1,12 +1,6 @@
-name: ci
+name: tests
 on: [push]
 jobs:
-  build:
-    runs-on: ubuntu-latest
-    container:
-      image: public.ecr.aws/docker/library/python:3.9-slim
-    steps:
-      - run: echo "building package"
   test:
     runs-on: ubuntu-latest
     container:
