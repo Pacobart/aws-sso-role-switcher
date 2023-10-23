@@ -2,9 +2,15 @@ NAME := aws-sso-role-switcher
 
 .DEFAULT_GOAL := build
 
+.PHONY: init
+init:
+	go mod init aws-sso-role-switcher
+
 .PHONY: deps
 deps:
+	export GOPROXY=direct
 	go mod download
+	go mod tidy
 
 .PHONY: build
 build: deps

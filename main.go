@@ -4,15 +4,24 @@ import (
 	"bufio"
 	"fmt"
 	"os"
+	"bytes"
 	"os/exec"
 	"strings"
 	"runtime"
 	"github.com/c-bata/go-prompt"
 )
 
+var enableDebug = false
+
 func check(e error) {
 	if e!= nil {
 		panic(e)
+	}
+}
+
+func debug(input string) {
+	if enableDebug {
+		fmt.Println(input)
 	}
 }
 
@@ -95,31 +104,66 @@ func getAWSRegion() string {
 	}
 }
 
-func getAWSCredentials(awsProfile string) {
+func getAWSCredentials(awsProfile string) string {
+	var osFormat string
 	if runtime.GOOS == "windows" {
-		cmd := exec.Command(fmt.Sprintf("aws configure export-credentials --profile %s --format windows-cmd", awsProfile), os.Getenv("PATH"))
-		err := cmd.Run()
-		check(err)
+		osFormat = "windows-cmd"
 	} else {
-		cmd := exec.Command(fmt.Sprintf("aws configure export-credentials --profile %s --format env", awsProfile), os.Getenv("PATH"))
-		err := cmd.Run()
-		check(err)
+		osFormat = "env"
 	}
+	debug(fmt.Sprintf("Operating System: %s", osFormat))
+
+	cmd := exec.Command("aws", "configure", "export-credentials", "--profile", awsProfile, "--format", osFormat)
+	//cmd := exec.Command("aws", "configure", "export-credentials", "--profile", awsProfile, "--format", "process") // TODO: convert to using process to get json/struct. Also look to use sts call instead
+	var out bytes.Buffer
+	var stderr bytes.Buffer
+	cmd.Stdout = &out
+	cmd.Stderr = &stderr
+	err := cmd.Run()
+	if err != nil {
+		fmt.Println(fmt.Sprint(err) + ": " + stderr.String())
+		fmt.Println("Result: " + out.String())
+	}
+	
+	check(err)
+	return out.String()
+}
+
+func formatOutput(awsRegion string, awsCreds string) string {
+	var exportWord string
+	if runtime.GOOS == "windows" {
+		exportWord = "set"
+	} else {
+		exportWord = "export"
+	}
+	regionCommand := fmt.Sprintf("%s AWS_REGION=%s", exportWord, awsRegion)
+	output := fmt.Sprintf("%s\n%s", regionCommand, awsCreds)
+	return output
+}
+
+func writeToFile(data string, tmpFile string) {
+	outFile, err := os.Create(tmpFile)
+	check(err)
+	defer outFile.Close()
+	w := bufio.NewWriter(outFile)
+	_, err = w.WriteString(data)
+	check(err)
+	w.Flush()
 }
 
 func main() {
-	//fmt.Println("Select AWS Profile")
-	//awsProfile := prompt.Input("> ", selectAwsProfile)
-	//fmt.Println(fmt.Sprintf("Using AWS Profile: %s", awsProfile))
+	fmt.Println("Select AWS Profile")
+	awsProfile := prompt.Input("> ", selectAwsProfile)
+	debug(fmt.Sprintf("Using AWS Profile: %s", awsProfile))
 
 	awsRegion := getAWSRegion()
-	//fmt.Println(fmt.Sprintf("Using AWS Region: %s", awsRegion))
+	debug(fmt.Sprintf("Using AWS Region: %s", awsRegion))
 
-	if runtime.GOOS == "windows" {
-		fmt.Println(fmt.Sprintf("set AWS_REGION=%s", awsRegion))
-	} else {
-		fmt.Println(fmt.Sprintf("export AWS_REGION=%s", awsRegion))
-	}
+	awsCreds := getAWSCredentials(awsProfile)
 
-	//getAWSCredentials(awsProfile)
+	outFile := "/tmp/asrscmds"
+	outText := formatOutput(awsRegion, awsCreds)
+	fmt.Println(outText)
+	writeToFile(outText, outFile)
+	fmt.Println(fmt.Sprintf("Commands set. Run `source %s`", outFile))
 }
